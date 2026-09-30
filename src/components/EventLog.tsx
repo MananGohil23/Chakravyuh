@@ -49,12 +49,12 @@ export function EventLog() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-xs uppercase tracking-widest text-stone-400">Event log</h2>
+        <h2 className="font-display text-sm uppercase tracking-widest text-stone-400">Event log</h2>
         <div className="flex gap-2">
           <button
             onClick={undo}
             disabled={state.log.length === 0}
-            className="rounded bg-stone-700 px-2 py-1 text-xs hover:bg-stone-600 disabled:opacity-40"
+            className="font-display rounded bg-stone-700 px-2 py-1 text-sm hover:bg-stone-600 disabled:opacity-40"
           >
             ↩ Undo
           </button>
@@ -62,7 +62,7 @@ export function EventLog() {
             onClick={() => {
               if (window.confirm("Reset the entire game? This cannot be undone.")) reset();
             }}
-            className="rounded bg-rose-800 px-2 py-1 text-xs hover:bg-rose-700"
+            className="font-display rounded bg-rose-800 px-2 py-1 text-sm hover:bg-rose-700"
           >
             Reset
           </button>

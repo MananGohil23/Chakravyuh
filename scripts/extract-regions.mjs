@@ -49,6 +49,27 @@ function dilate(src, r) {
   return out;
 }
 
+function erode(src, r) {
+  if (r === 0) return src;
+  const out = new Uint8Array(src.length);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      let keep = 1;
+      for (let dy = -r; dy <= r && keep; dy++) {
+        const yy = y + dy;
+        if (yy < 0 || yy >= H) continue;
+        for (let dx = -r; dx <= r; dx++) {
+          const xx = x + dx;
+          if (xx < 0 || xx >= W) continue;
+          if (!src[yy * W + xx]) { keep = 0; break; }
+        }
+      }
+      out[y * W + x] = keep;
+    }
+  }
+  return out;
+}
+
 function rdp(points, eps) {
   if (points.length < 3) return points;
   const first = points[0];
@@ -71,6 +92,79 @@ function rdp(points, eps) {
   return [first, last];
 }
 
+/** Marching-squares contour tracing of a binary mask; returns the largest loop. */
+function traceContour(mask) {
+  const key = (x, y) => `${Math.round(x * 2)},${Math.round(y * 2)}`;
+  const segs = [];
+  const val = (x, y) => (x < 0 || y < 0 || x >= W || y >= H ? 0 : mask[y * W + x]);
+  for (let y = -1; y < H; y++) {
+    for (let x = -1; x < W; x++) {
+      const a = val(x, y);
+      const b = val(x + 1, y);
+      const c = val(x + 1, y + 1);
+      const d = val(x, y + 1);
+      const idx = a * 8 + b * 4 + c * 2 + d;
+      const T = key(x + 0.5, y);
+      const R = key(x + 1, y + 0.5);
+      const B = key(x + 0.5, y + 1);
+      const L = key(x, y + 0.5);
+      const add = (p, q) => segs.push([p, q]);
+      switch (idx) {
+        case 1: case 14: add(L, B); break;
+        case 2: case 13: add(B, R); break;
+        case 3: case 12: add(L, R); break;
+        case 4: case 11: add(T, R); break;
+        case 6: case 9: add(T, B); break;
+        case 7: case 8: add(T, L); break;
+        case 5: add(T, R); add(B, L); break;
+        case 10: add(T, L); add(B, R); break;
+        default: break;
+      }
+    }
+  }
+
+  const adj = new Map();
+  for (const [k1, k2] of segs) {
+    if (!adj.has(k1)) adj.set(k1, []);
+    if (!adj.has(k2)) adj.set(k2, []);
+    adj.get(k1).push(k2);
+    adj.get(k2).push(k1);
+  }
+
+  const ekey = (p, q) => (p < q ? `${p}|${q}` : `${q}|${p}`);
+  const edgeUsed = new Set();
+  let best = [];
+
+  for (const [start] of adj) {
+    for (const nb of adj.get(start)) {
+      if (edgeUsed.has(ekey(start, nb))) continue;
+      const loop = [start];
+      edgeUsed.add(ekey(start, nb));
+      let prev = start;
+      let cur = nb;
+      while (cur !== start) {
+        loop.push(cur);
+        const nbrs = adj.get(cur) ?? [];
+        let next = null;
+        for (const q of nbrs) {
+          if (q !== prev && !edgeUsed.has(ekey(cur, q))) { next = q; break; }
+        }
+        if (next === null) break;
+        edgeUsed.add(ekey(cur, next));
+        prev = cur;
+        cur = next;
+      }
+      if (loop.length > best.length) best = loop;
+    }
+  }
+
+  const pts = best.map((k) => {
+    const [a, b] = k.split(",");
+    return [Number(a) / 2, Number(b) / 2];
+  });
+  return pts;
+}
+
 const image = await Jimp.read(IMG);
 const { data } = image.bitmap;
 
@@ -80,7 +174,7 @@ for (let i = 0; i < W * H; i++) {
 }
 
 let wall = new Uint8Array(W * H);
-for (let i = 0; i < W * H; i++) wall[i] = lum[i] < 140 ? 1 : 0;
+for (let i = 0; i < W * H; i++) wall[i] = lum[i] < 110 ? 1 : 0;
 wall = dilate(wall, 3);
 
 const regions = {};
@@ -109,19 +203,15 @@ for (const [id, [sx, sy]] of Object.entries(SEEDS)) {
   if (!seed) { warnings.push(`${id}: no seed`); continue; }
   const [fx, fy] = seed;
 
-  const mask = new Uint8Array(W * H);
+  let mask = new Uint8Array(W * H);
   const stack = [fy * W + fx];
   mask[fy * W + fx] = 1;
   let count = 0;
-  let cxs = 0;
-  let cys = 0;
   while (stack.length > 0) {
     const idx = stack.pop();
     count++;
     const x = idx % W;
     const y = (idx / W) | 0;
-    cxs += x;
-    cys += y;
     if (x > 0 && !mask[idx - 1] && !wall[idx - 1]) { mask[idx - 1] = 1; stack.push(idx - 1); }
     if (x < W - 1 && !mask[idx + 1] && !wall[idx + 1]) { mask[idx + 1] = 1; stack.push(idx + 1); }
     if (y > 0 && !mask[idx - W] && !wall[idx - W]) { mask[idx - W] = 1; stack.push(idx - W); }
@@ -129,38 +219,18 @@ for (const [id, [sx, sy]] of Object.entries(SEEDS)) {
   }
   if (count > 260000) warnings.push(`${id}: leaked (${count}px)`);
 
-  const cx = cxs / count;
-  const cy = cys / count;
+  // nudge out past the wall inset, then close internal notches/peninsulas
+  mask = dilate(mask, 2);
+  mask = erode(dilate(mask, 7), 7);
 
-  const ANGLES = 180;
-  const pts = [];
-  for (let a = 0; a < ANGLES; a++) {
-    const ang = (a / ANGLES) * Math.PI * 2;
-    const dx = Math.cos(ang);
-    const dy = Math.sin(ang);
-    let lastHit = -1;
-    for (let t = 3; t < 700; t += 1) {
-      const x = Math.round(cx + dx * t);
-      const y = Math.round(cy + dy * t);
-      if (x < 0 || y < 0 || x >= W || y >= H) break;
-      if (mask[y * W + x]) lastHit = t;
-    }
-    if (lastHit > 0) pts.push([cx + dx * lastHit, cy + dy * lastHit]);
-  }
-
-  const smoothed = pts.map((_, i) => {
-    const a = pts[(i - 1 + pts.length) % pts.length];
-    const b = pts[i];
-    const c = pts[(i + 1) % pts.length];
-    return [(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3];
-  });
-  const simplified = rdp(smoothed, 2.5);
+  const contour = traceContour(mask);
+  const simplified = rdp(contour, 2.0);
   const path =
     simplified
       .map(([x, y], i) => `${i === 0 ? "M" : "L"}${Math.round(x)} ${Math.round(y)}`)
       .join(" ") + " Z";
   regions[id] = path;
-  console.log(`${id.padEnd(14)} pts=${simplified.length - 1} px=${count}`);
+  console.log(`${id.padEnd(14)} pts=${simplified.length} px=${count}`);
 }
 
 const tsLines = [

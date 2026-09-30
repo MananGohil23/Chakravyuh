@@ -68,7 +68,7 @@ export function ActionPanel({ opts, mode, setMode }: Props) {
                   : "border-stone-600 bg-stone-800 hover:bg-stone-700"
               } disabled:cursor-not-allowed disabled:opacity-40`}
             >
-              <span className="font-semibold">{m.label}</span>
+              <span className="font-display text-base">{m.label}</span>
               <span className="ml-1 text-xs text-stone-400">({counts[m.key]})</span>
               <span className="block text-[11px] text-stone-400">{m.hint}</span>
             </button>
@@ -79,7 +79,7 @@ export function ActionPanel({ opts, mode, setMode }: Props) {
           onClick={() => act({ type: "FORTIFY" })}
           className="rounded-lg border border-stone-600 bg-stone-800 px-3 py-2 text-left text-sm hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          <span className="font-semibold">Fortify</span>
+          <span className="font-display text-base">Fortify</span>
           <span className="block text-[11px] text-stone-400">Fort your current territory</span>
         </button>
       </div>
@@ -97,7 +97,7 @@ export function ActionPanel({ opts, mode, setMode }: Props) {
                 <button
                   key={id}
                   onClick={() => dispatchTarget(id)}
-                  className="rounded bg-stone-700 px-3 py-1 text-sm hover:bg-stone-600"
+                  className="font-display rounded bg-stone-700 px-3 py-1 text-base hover:bg-stone-600"
                 >
                   {TERRITORY_BY_ID[id].name}
                 </button>
@@ -110,7 +110,9 @@ export function ActionPanel({ opts, mode, setMode }: Props) {
       <p className="text-center text-xs text-stone-500">
         Or click a highlighted territory on the map.
       </p>
-      <p className="text-center text-[11px] text-stone-500">Acting: Team {team}</p>
+      <p className="text-center text-[11px] text-stone-500">
+        Acting: {state.teamNames[team]}
+      </p>
     </div>
   );
 }

@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Mukta", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Rozha One", "Mukta", ui-serif, serif;
+}
+
 :root {
   color-scheme: dark;
 }
@@ -7,6 +12,7 @@
 body {
   margin: 0;
   background: #0c0a09;
+  font-family: var(--font-sans);
 }
 
 @keyframes bf-pulse {

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { TERRITORIES } from "../engine/data.ts";
 import { REGIONS } from "../engine/regions.ts";
+import { REGION_GEOM } from "../engine/geometry.ts";
 import type { Owner } from "../engine/types.ts";
 import { useGame } from "../state/game.tsx";
 import { useCalibration, type Geom } from "../state/calibration.tsx";
@@ -91,12 +92,20 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
       >
         {TERRITORIES.map((t) => {
           const g = geomFor(t.id);
+          const { centroid, bbox } = REGION_GEOM[t.id];
+          const [cx, cy] = centroid;
+          const w = bbox.maxX - bbox.minX;
+          const h = bbox.maxY - bbox.minY;
+          const nameFont = Math.max(13, Math.min(30, (w * 0.82) / (t.name.length * 0.62)));
           const owner = state.territories[t.id].owner;
           const fort = state.territories[t.id].fort;
           const isHighlight = highlightSet.has(t.id);
           const isSelected = selected === t.id;
           const marker = markerAt[t.id];
-          const transform = `translate(${g.dx} ${g.dy}) translate(${t.cx} ${t.cy}) scale(${g.s}) translate(${-t.cx} ${-t.cy})`;
+          const transform = `translate(${g.dx} ${g.dy}) translate(${cx} ${cy}) scale(${g.s}) translate(${-cx} ${-cy})`;
+          const label = owner
+            ? `${t.name} — ${state.teamNames[owner]}`
+            : `${t.name} — Neutral`;
           return (
             <g
               key={t.id}
@@ -107,13 +116,13 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
               onPointerDown={calibrating ? (e) => startDrag("move", t.id, e) : undefined}
               style={{ cursor: onSelect || calibrating ? "pointer" : "default" }}
             >
-              <title>{`${t.name}${owner ? ` — Team ${owner}` : " — Neutral"}${fort ? " (fortified)" : ""}`}</title>
+              <title>{`${label}${fort ? " (fortified)" : ""}`}</title>
               <path
                 d={REGIONS[t.id]}
-                fill={fillFor(owner)}
-                fillOpacity={owner ? 0.38 : 0.06}
-                stroke={
-                  calibrating
+                style={{
+                  fill: fillFor(owner),
+                  fillOpacity: owner ? 0.92 : 0.06,
+                  stroke: calibrating
                     ? "#22d3ee"
                     : isSelected
                       ? "#facc15"
@@ -121,9 +130,11 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
                         ? "#fde047"
                         : owner
                           ? OWNER_STROKE[owner]
-                          : "rgba(120,113,108,0.55)"
-                }
-                strokeWidth={calibrating ? 3 : isSelected ? 8 : isHighlight ? 7 : owner ? 4 : 1.5}
+                          : "rgba(120,113,108,0.55)",
+                  strokeWidth: calibrating ? 3 : isSelected ? 8 : isHighlight ? 7 : owner ? 4 : 1.5,
+                  transition:
+                    "fill 700ms ease, fill-opacity 700ms ease, stroke 700ms ease, stroke-width 400ms ease",
+                }}
                 strokeLinejoin="round"
                 className={isHighlight && !calibrating ? "bf-pulse" : undefined}
                 strokeDasharray={calibrating ? "12 8" : undefined}
@@ -131,8 +142,8 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
               {calibrating && (
                 <>
                   <text
-                    x={t.cx}
-                    y={t.cy}
+                    x={cx}
+                    y={cy}
                     textAnchor="middle"
                     dominantBaseline="central"
                     fontSize={26}
@@ -142,8 +153,8 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
                     {t.number}
                   </text>
                   <rect
-                    x={t.cx + t.r - 8}
-                    y={t.cy - 8}
+                    x={bbox.maxX}
+                    y={cy - 8}
                     width={16}
                     height={16}
                     fill="#22d3ee"
@@ -154,8 +165,26 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
                   />
                 </>
               )}
+              <text
+                x={cx}
+                y={cy - h * 0.05}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={nameFont}
+                fontFamily="Rozha One, serif"
+                fontWeight={400}
+                fill="#ffffff"
+                stroke="rgba(0,0,0,0.55)"
+                strokeWidth={4}
+                paintOrder="stroke"
+                strokeLinejoin="round"
+                pointerEvents="none"
+                style={{ opacity: owner ? 1 : 0, transition: "opacity 600ms ease 150ms" }}
+              >
+                {t.name}
+              </text>
               {fort && (
-                <g transform={`translate(${t.cx + t.r * 0.55}, ${t.cy - t.r * 0.55})`}>
+                <g transform={`translate(${cx + w * 0.28}, ${cy - h * 0.28})`}>
                   <circle r={20} fill="#1c1917" stroke="#fbbf24" strokeWidth={3} />
                   <text textAnchor="middle" dominantBaseline="central" fontSize={22} fill="#fbbf24">
                     ⛨
@@ -163,7 +192,7 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
                 </g>
               )}
               {marker && (
-                <g transform={`translate(${t.cx}, ${t.cy + t.r * 0.62})`}>
+                <g transform={`translate(${cx}, ${cy + h * 0.15})`}>
                   <circle r={24} fill={OWNER_FILL[marker]} stroke="#ffffff" strokeWidth={4} />
                   <text
                     textAnchor="middle"
@@ -172,7 +201,7 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
                     fontWeight={700}
                     fill="#ffffff"
                   >
-                    {marker}
+                    {state.teamNames[marker].trim().charAt(0).toUpperCase() || marker}
                   </text>
                 </g>
               )}

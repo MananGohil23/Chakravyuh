@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fontsource/mukta": "^5.3.0",
+    "@fontsource/rozha-one": "^5.3.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

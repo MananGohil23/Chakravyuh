@@ -22,7 +22,7 @@ export function WarPanel() {
             <button
               key={id}
               onClick={() => act({ type: "CHOOSE_RELOCATION", territoryId: id })}
-              className="rounded bg-stone-700 px-3 py-1 text-sm hover:bg-stone-600"
+              className="font-display rounded bg-stone-700 px-3 py-1 text-base hover:bg-stone-600"
             >
               {TERRITORY_BY_ID[id].name}
             </button>
@@ -45,7 +45,7 @@ export function WarPanel() {
             <button
               key={id}
               onClick={() => act({ type: "CHOOSE_WAR_BONUS", territoryId: id })}
-              className="rounded bg-stone-700 px-3 py-1 text-sm hover:bg-stone-600"
+              className="font-display rounded bg-stone-700 px-3 py-1 text-base hover:bg-stone-600"
             >
               {TERRITORY_BY_ID[id].name}
             </button>
@@ -89,13 +89,13 @@ export function WarPanel() {
                   <div className="grid grid-cols-2 gap-1">
                     <button
                       onClick={() => set(true)}
-                      className={`rounded px-2 py-1 text-xs ${val ? "bg-emerald-500 text-stone-900" : "bg-stone-700"}`}
+                      className={`font-display rounded px-2 py-1 text-sm ${val ? "bg-emerald-500 text-stone-900" : "bg-stone-700"}`}
                     >
                       Correct
                     </button>
                     <button
                       onClick={() => set(false)}
-                      className={`rounded px-2 py-1 text-xs ${!val ? "bg-rose-600 text-white" : "bg-stone-700"}`}
+                      className={`font-display rounded px-2 py-1 text-sm ${!val ? "bg-rose-600 text-white" : "bg-stone-700"}`}
                     >
                       Wrong
                     </button>
@@ -110,7 +110,7 @@ export function WarPanel() {
               setACorrect(false);
               setBCorrect(false);
             }}
-            className="mt-3 w-full rounded-lg bg-amber-500 px-4 py-2 font-bold text-stone-900 hover:bg-amber-400"
+            className="font-display mt-3 w-full rounded-lg bg-amber-500 px-4 py-2 text-base text-stone-900 hover:bg-amber-400"
           >
             Record answer {qNumber}
           </button>

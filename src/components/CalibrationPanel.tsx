@@ -33,12 +33,12 @@ export function CalibrationPanel({
   return (
     <div className="space-y-3 rounded-lg border border-cyan-700/60 bg-cyan-950/30 p-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs uppercase tracking-widest text-cyan-300">
+        <h2 className="font-display text-sm uppercase tracking-widest text-cyan-300">
           Map calibration
         </h2>
         <button
           onClick={() => setCalibrating(!calibrating)}
-          className={`rounded px-2 py-1 text-xs ${
+          className={`font-display rounded px-2 py-1 text-sm ${
             calibrating ? "bg-cyan-400 text-stone-900" : "bg-stone-700 hover:bg-stone-600"
           }`}
         >
@@ -81,7 +81,7 @@ export function CalibrationPanel({
               () => setCopied(false),
             );
           }}
-          className="flex-1 rounded bg-stone-700 px-2 py-1 text-xs hover:bg-stone-600"
+          className="font-display flex-1 rounded bg-stone-700 px-2 py-1 text-sm hover:bg-stone-600"
         >
           {copied ? "Copied!" : "Copy alignment JSON"}
         </button>
@@ -89,7 +89,7 @@ export function CalibrationPanel({
           onClick={() => {
             if (window.confirm("Reset all calibration to the defaults?")) reset();
           }}
-          className="rounded bg-rose-800 px-2 py-1 text-xs hover:bg-rose-700"
+          className="font-display rounded bg-rose-800 px-2 py-1 text-sm hover:bg-rose-700"
         >
           Reset
         </button>

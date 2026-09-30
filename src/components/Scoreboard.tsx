@@ -18,7 +18,7 @@ function TeamCard({ team }: { team: Team }) {
       }`}
     >
       <div className="flex items-center justify-between">
-        <span className="truncate font-semibold">{state.teamNames[team]}</span>
+        <span className="font-display truncate text-xl">{state.teamNames[team]}</span>
         <span className="text-2xl font-bold tabular-nums">{counts[team]}</span>
       </div>
       <div className="mt-1 flex items-center gap-2 text-xs opacity-80">

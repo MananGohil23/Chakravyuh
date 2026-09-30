@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { TERRITORIES, TERRITORY_IDS } from "../engine/data.ts";
 import { useGame } from "../state/game.tsx";
 import { ownedBy } from "../engine/core.ts";
+import { SpinWheel } from "./SpinWheel.tsx";
 import type { Team } from "../engine/types.ts";
 
 const NAME_BY_ID = Object.fromEntries(TERRITORIES.map((t) => [t.id, t.name]));
@@ -12,20 +12,10 @@ function teamForDrawIndex(index: number): Team {
 
 export function SetupPanel() {
   const { state, act, undo, setTeamNames } = useGame();
-  const [spinning, setSpinning] = useState(false);
 
   const remaining = TERRITORY_IDS.filter((id) => !state.drawn.includes(id));
   const drawIndex = state.drawn.length;
-
-  function spin() {
-    if (spinning || remaining.length === 0) return;
-    setSpinning(true);
-    window.setTimeout(() => {
-      const pick = remaining[Math.floor(Math.random() * remaining.length)];
-      act({ type: "DRAW_TERRITORY", territoryId: pick });
-      setSpinning(false);
-    }, 1100);
-  }
+  const nextTeam = teamForDrawIndex(drawIndex);
 
   return (
     <div className="space-y-4">
@@ -36,9 +26,7 @@ export function SetupPanel() {
             <input
               className="mt-1 w-full rounded border border-stone-600 bg-stone-900 px-2 py-1 text-sm text-stone-100"
               value={state.teamNames[team]}
-              onChange={(e) =>
-                setTeamNames({ ...state.teamNames, [team]: e.target.value })
-              }
+              onChange={(e) => setTeamNames({ ...state.teamNames, [team]: e.target.value })}
             />
           </label>
         ))}
@@ -50,19 +38,18 @@ export function SetupPanel() {
             <p className="text-xs uppercase tracking-widest text-stone-400">
               Wheel draw {drawIndex + 1} of {state.config.drawCount}
             </p>
-            <p className="mt-2 text-lg font-semibold">
+            <p className="mt-1 text-sm">
               Next:{" "}
-              <span className={teamForDrawIndex(drawIndex) === "A" ? "text-blue-300" : "text-rose-300"}>
-                {state.teamNames[teamForDrawIndex(drawIndex)]}
+              <span className={nextTeam === "A" ? "text-blue-300" : "text-rose-300"}>
+                {state.teamNames[nextTeam]}
               </span>
             </p>
-            <button
-              onClick={spin}
-              disabled={spinning}
-              className="mt-3 w-full rounded-lg bg-amber-500 px-4 py-3 text-lg font-bold text-stone-900 hover:bg-amber-400 disabled:opacity-60"
-            >
-              {spinning ? "Spinning…" : "🎡 Spin the wheel"}
-            </button>
+            <div className="mt-3">
+              <SpinWheel
+                items={remaining.map((id) => ({ id, name: NAME_BY_ID[id] }))}
+                onResult={(id) => act({ type: "DRAW_TERRITORY", territoryId: id })}
+              />
+            </div>
             <button
               onClick={undo}
               disabled={state.drawn.length === 0}
@@ -92,9 +79,7 @@ export function SetupPanel() {
         </>
       )}
 
-      {state.phase === "SETUP_MARKER" && (
-        <MarkerSetup />
-      )}
+      {state.phase === "SETUP_MARKER" && <MarkerSetup />}
     </div>
   );
 }
@@ -115,7 +100,7 @@ function MarkerSetup() {
               <button
                 key={id}
                 onClick={() => act({ type: "PLACE_MARKER", team, territoryId: id })}
-                className={`rounded px-2 py-1 text-sm ${
+                className={`font-display rounded px-2 py-1 text-base ${
                   state.markers[team] === id
                     ? "bg-yellow-400 text-stone-900"
                     : "bg-stone-700 text-stone-100 hover:bg-stone-600"
@@ -134,7 +119,7 @@ function MarkerSetup() {
           <button
             key={team}
             onClick={() => act({ type: "SET_FIRST_TEAM", team })}
-            className={`rounded px-2 py-1 text-sm ${
+            className={`font-display rounded px-2 py-1 text-base ${
               state.config.firstTeam === team
                 ? "bg-amber-500 text-stone-900"
                 : "bg-stone-700 hover:bg-stone-600"
@@ -159,7 +144,7 @@ function MarkerSetup() {
       <button
         onClick={() => act({ type: "START_GAME" })}
         disabled={!bothPlaced}
-        className="w-full rounded-lg bg-emerald-500 px-4 py-3 text-lg font-bold text-stone-900 hover:bg-emerald-400 disabled:opacity-50"
+        className="font-display w-full rounded-lg bg-emerald-500 px-4 py-3 text-lg text-stone-900 hover:bg-emerald-400 disabled:opacity-50"
       >
         Start the battle
       </button>

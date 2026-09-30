@@ -36,13 +36,13 @@ function SuddenDeathPanel() {
               <div className="grid grid-cols-2 gap-1">
                 <button
                   onClick={() => set(true)}
-                  className={`rounded px-2 py-1 text-xs ${val ? "bg-emerald-500 text-stone-900" : "bg-stone-700"}`}
+                  className={`font-display rounded px-2 py-1 text-sm ${val ? "bg-emerald-500 text-stone-900" : "bg-stone-700"}`}
                 >
                   Correct
                 </button>
                 <button
                   onClick={() => set(false)}
-                  className={`rounded px-2 py-1 text-xs ${!val ? "bg-rose-600 text-white" : "bg-stone-700"}`}
+                  className={`font-display rounded px-2 py-1 text-sm ${!val ? "bg-rose-600 text-white" : "bg-stone-700"}`}
                 >
                   Wrong
                 </button>
@@ -53,7 +53,7 @@ function SuddenDeathPanel() {
       </div>
       <button
         onClick={() => act({ type: "SUDDEN_DEATH_ANSWER", aCorrect: a, bCorrect: b })}
-        className="mt-3 w-full rounded-lg bg-yellow-400 px-4 py-2 font-bold text-stone-900 hover:bg-yellow-300"
+        className="font-display mt-3 w-full rounded-lg bg-yellow-400 px-4 py-2 text-base text-stone-900 hover:bg-yellow-300"
       >
         Submit
       </button>
@@ -66,8 +66,8 @@ function GameOverPanel() {
   const winner = state.winner;
   return (
     <div className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 p-6 text-center">
-      <p className="text-xs uppercase tracking-widest text-emerald-300">Game over</p>
-      <p className="mt-2 text-2xl font-bold">
+      <p className="font-display text-sm uppercase tracking-widest text-emerald-300">Game over</p>
+      <p className="font-display mt-2 text-3xl">
         {winner ? `${state.teamNames[winner]} wins!` : "No winner"}
       </p>
     </div>
@@ -78,7 +78,7 @@ function StatusBar() {
   const { state } = useGame();
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-stone-700 bg-stone-800/40 px-3 py-2 text-xs text-stone-300">
-      <span className="uppercase tracking-widest text-stone-400">
+      <span className="font-display uppercase tracking-widest text-stone-300">
         {phaseLabel(state.phase)}
       </span>
       {state.phase === "TURN" && (
@@ -148,13 +148,13 @@ export default function App() {
     <div className="min-h-screen bg-stone-950 text-stone-100">
       <div className="mx-auto max-w-[1500px] p-4">
         <header className="mb-3 flex items-baseline gap-3">
-          <h1 className="text-2xl font-black tracking-widest">THE BATTLEFIELD</h1>
+          <h1 className="font-display text-3xl tracking-widest">THE BATTLEFIELD</h1>
           <span className="text-xs uppercase tracking-widest text-stone-500">
             Round 3 · admin console
           </span>
           <button
             onClick={() => setShowCal((v) => !v)}
-            className="ml-auto rounded border border-stone-600 px-2 py-1 text-xs text-stone-400 hover:bg-stone-800"
+            className="font-display ml-auto rounded border border-stone-600 px-2 py-1 text-sm text-stone-400 hover:bg-stone-800"
           >
             {showCal ? "Hide calibration" : "Calibrate map"}
           </button>
