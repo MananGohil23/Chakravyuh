@@ -1,0 +1,209 @@
+// One-off tool: trace each territory's outline from the map artwork and emit
+// SVG polygon paths. Run with: node scripts/extract-regions.mjs
+import Jimp from "jimp";
+import { writeFileSync } from "node:fs";
+
+const IMG = "public/map.jpeg";
+const OUT_TS = "src/engine/regions.ts";
+const OUT_DEBUG = "C:/Users/Manan/AppData/Local/Temp/opencode/regions-debug.png";
+
+const W = 1536;
+const H = 1024;
+
+const SEEDS = {
+  hastinapura: [755, 145],
+  gandhara: [470, 300],
+  kamboja: [1030, 260],
+  kuru: [1310, 355],
+  matsya: [375, 480],
+  indraprastha: [755, 375],
+  magadha: [1045, 485],
+  panchala: [725, 530],
+  virata: [535, 665],
+  dwarka: [255, 690],
+  kosala: [795, 790],
+  kashi: [1120, 660],
+  anga: [960, 855],
+  kalinga: [1185, 880],
+  saurashtra: [430, 850],
+};
+
+function dilate(src, r) {
+  if (r === 0) return src;
+  const out = new Uint8Array(src.length);
+  for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      let s = 0;
+      for (let dy = -r; dy <= r && !s; dy++) {
+        const yy = y + dy;
+        if (yy < 0 || yy >= H) continue;
+        for (let dx = -r; dx <= r; dx++) {
+          const xx = x + dx;
+          if (xx < 0 || xx >= W) continue;
+          if (src[yy * W + xx]) { s = 1; break; }
+        }
+      }
+      out[y * W + x] = s;
+    }
+  }
+  return out;
+}
+
+function rdp(points, eps) {
+  if (points.length < 3) return points;
+  const first = points[0];
+  const last = points[points.length - 1];
+  let index = -1;
+  let maxDist = 0;
+  const dx = last[0] - first[0];
+  const dy = last[1] - first[1];
+  const denom = Math.hypot(dx, dy) || 1;
+  for (let i = 1; i < points.length - 1; i++) {
+    const [px, py] = points[i];
+    const dist = Math.abs(dy * px - dx * py + last[0] * first[1] - last[1] * first[0]) / denom;
+    if (dist > maxDist) { maxDist = dist; index = i; }
+  }
+  if (maxDist > eps) {
+    const left = rdp(points.slice(0, index + 1), eps);
+    const right = rdp(points.slice(index), eps);
+    return left.slice(0, -1).concat(right);
+  }
+  return [first, last];
+}
+
+const image = await Jimp.read(IMG);
+const { data } = image.bitmap;
+
+const lum = new Uint8Array(W * H);
+for (let i = 0; i < W * H; i++) {
+  lum[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
+}
+
+let wall = new Uint8Array(W * H);
+for (let i = 0; i < W * H; i++) wall[i] = lum[i] < 140 ? 1 : 0;
+wall = dilate(wall, 3);
+
+const regions = {};
+const warnings = [];
+
+function findSeed(sx, sy) {
+  let bx = -1;
+  let by = -1;
+  for (let y = sy - 45; y <= sy + 45; y += 3) {
+    for (let x = sx - 45; x <= sx + 45; x += 3) {
+      if (x < 6 || y < 6 || x >= W - 6 || y >= H - 6) continue;
+      let ok = true;
+      for (let dy = -6; dy <= 6 && ok; dy += 3) {
+        for (let dx = -6; dx <= 6; dx += 3) {
+          if (wall[(y + dy) * W + (x + dx)]) { ok = false; break; }
+        }
+      }
+      if (ok) { bx = x; by = y; }
+    }
+  }
+  return bx < 0 ? null : [bx, by];
+}
+
+for (const [id, [sx, sy]] of Object.entries(SEEDS)) {
+  const seed = findSeed(sx, sy);
+  if (!seed) { warnings.push(`${id}: no seed`); continue; }
+  const [fx, fy] = seed;
+
+  const mask = new Uint8Array(W * H);
+  const stack = [fy * W + fx];
+  mask[fy * W + fx] = 1;
+  let count = 0;
+  let cxs = 0;
+  let cys = 0;
+  while (stack.length > 0) {
+    const idx = stack.pop();
+    count++;
+    const x = idx % W;
+    const y = (idx / W) | 0;
+    cxs += x;
+    cys += y;
+    if (x > 0 && !mask[idx - 1] && !wall[idx - 1]) { mask[idx - 1] = 1; stack.push(idx - 1); }
+    if (x < W - 1 && !mask[idx + 1] && !wall[idx + 1]) { mask[idx + 1] = 1; stack.push(idx + 1); }
+    if (y > 0 && !mask[idx - W] && !wall[idx - W]) { mask[idx - W] = 1; stack.push(idx - W); }
+    if (y < H - 1 && !mask[idx + W] && !wall[idx + W]) { mask[idx + W] = 1; stack.push(idx + W); }
+  }
+  if (count > 260000) warnings.push(`${id}: leaked (${count}px)`);
+
+  const cx = cxs / count;
+  const cy = cys / count;
+
+  const ANGLES = 180;
+  const pts = [];
+  for (let a = 0; a < ANGLES; a++) {
+    const ang = (a / ANGLES) * Math.PI * 2;
+    const dx = Math.cos(ang);
+    const dy = Math.sin(ang);
+    let lastHit = -1;
+    for (let t = 3; t < 700; t += 1) {
+      const x = Math.round(cx + dx * t);
+      const y = Math.round(cy + dy * t);
+      if (x < 0 || y < 0 || x >= W || y >= H) break;
+      if (mask[y * W + x]) lastHit = t;
+    }
+    if (lastHit > 0) pts.push([cx + dx * lastHit, cy + dy * lastHit]);
+  }
+
+  const smoothed = pts.map((_, i) => {
+    const a = pts[(i - 1 + pts.length) % pts.length];
+    const b = pts[i];
+    const c = pts[(i + 1) % pts.length];
+    return [(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3];
+  });
+  const simplified = rdp(smoothed, 2.5);
+  const path =
+    simplified
+      .map(([x, y], i) => `${i === 0 ? "M" : "L"}${Math.round(x)} ${Math.round(y)}`)
+      .join(" ") + " Z";
+  regions[id] = path;
+  console.log(`${id.padEnd(14)} pts=${simplified.length - 1} px=${count}`);
+}
+
+const tsLines = [
+  "// AUTO-GENERATED by scripts/extract-regions.mjs - do not edit by hand.",
+  "// SVG path (1536x1024) for each territory, traced from public/map.jpeg.",
+  "export const REGIONS: Record<string, string> = {",
+];
+for (const [k, v] of Object.entries(regions)) tsLines.push(`  ${JSON.stringify(k)}: ${JSON.stringify(v)},`);
+tsLines.push("};", "");
+writeFileSync(OUT_TS, tsLines.join("\n"));
+
+// ---- debug overlay ----
+const debug = image.clone();
+const colors = [
+  [255, 0, 0], [0, 170, 0], [0, 0, 255], [255, 136, 0], [170, 0, 170],
+  [0, 170, 170], [255, 0, 255], [128, 128, 0], [0, 100, 255], [255, 100, 100],
+  [100, 255, 100], [200, 200, 0], [0, 200, 200], [150, 75, 0], [75, 0, 150],
+];
+function setPx(x, y, col) {
+  if (x < 0 || y < 0 || x >= W || y >= H) return;
+  const idx = (y * W + x) * 4;
+  debug.bitmap.data[idx] = col[0];
+  debug.bitmap.data[idx + 1] = col[1];
+  debug.bitmap.data[idx + 2] = col[2];
+}
+let ci = 0;
+for (const path of Object.values(regions)) {
+  const nums = path.replace(/[MLZ]/g, " ").trim().split(/\s+/).map(Number);
+  const pts = [];
+  for (let i = 0; i < nums.length; i += 2) pts.push([nums[i], nums[i + 1]]);
+  const col = colors[ci++ % colors.length];
+  for (let i = 0; i < pts.length; i++) {
+    const [x0, y0] = pts[i];
+    const [x1, y1] = pts[(i + 1) % pts.length];
+    const steps = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0)));
+    for (let s = 0; s <= steps; s++) {
+      const x = Math.round(x0 + ((x1 - x0) * s) / steps);
+      const y = Math.round(y0 + ((y1 - y0) * s) / steps);
+      setPx(x, y, col);
+      setPx(x + 1, y, col);
+      setPx(x, y + 1, col);
+    }
+  }
+}
+await debug.writeAsync(OUT_DEBUG);
+console.log("warnings:", warnings);
