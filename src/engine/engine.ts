@@ -66,20 +66,9 @@ function resolveWar(state: GameState): GameState {
     }
   }
 
-  let bonusOptions: string[] | null = null;
-  if (!war.targetFort) {
-    const neutrals = neighboursOf(war.target).filter(
-      (id) => next.territories[id].owner === null,
-    );
-    if (neutrals.length === 1) {
-      next = setOwner(next, neutrals[0], war.attacker, false);
-    } else if (neutrals.length > 1) {
-      bonusOptions = neutrals;
-    }
-  }
-
-  next = { ...next, war: { ...war, bonusOptions } };
-  if (bonusOptions || next.pendingRelocate) return next;
+  // Attacker takes only the contested territory.
+  next = { ...next, war: null };
+  if (next.pendingRelocate) return next;
   return _endTurn(next);
 }
 
@@ -222,7 +211,6 @@ function reduce(state: GameState, action: Action): GameState {
           target: action.target,
           targetFort: state.territories[action.target].fort,
           answers: [],
-          bonusOptions: null,
         },
       };
     }
@@ -245,17 +233,6 @@ function reduce(state: GameState, action: Action): GameState {
       return next;
     }
 
-    case "CHOOSE_WAR_BONUS": {
-      if (state.phase !== "WAR" || !state.war?.bonusOptions)
-        throw new IllegalActionError("no bonus choice pending");
-      if (!state.war.bonusOptions.includes(action.territoryId))
-        throw new IllegalActionError("invalid bonus territory");
-      let next = setOwner(state, action.territoryId, state.war.attacker, false);
-      next = { ...next, war: { ...state.war, bonusOptions: null } };
-      if (next.pendingRelocate) return next;
-      return _endTurn(next);
-    }
-
     case "CHOOSE_RELOCATION": {
       if (!state.pendingRelocate) throw new IllegalActionError("no relocation pending");
       if (!state.pendingRelocate.options.includes(action.territoryId))
@@ -266,7 +243,6 @@ function reduce(state: GameState, action: Action): GameState {
         markers: { ...state.markers, [team]: action.territoryId },
         pendingRelocate: null,
       };
-      if (next.war?.bonusOptions) return next;
       return _endTurn(next);
     }
 

@@ -52,7 +52,7 @@ describe("war resolution variants", () => {
     const w = playWar(apply(s, { type: "DECLARE_WAR", target: "magadha" }), ATTACKER_WINS);
     expect(w.territories.magadha.owner).toBe("A");
     expect(w.territories.kashi.owner).toBe("B");
-    expect(w.war?.bonusOptions).toHaveLength(3);
+    expect(w.war).toBe(null);
   });
 
   it("captures only the contested territory when it has no neutral neighbour", () => {
@@ -86,12 +86,8 @@ describe("war resolution variants", () => {
     const moved = apply(w, { type: "CHOOSE_RELOCATION", territoryId: "kashi" });
     expect(moved.markers.B).toBe("kashi");
     expect(moved.pendingRelocate).toBe(null);
-    // bonus choice is still pending
-    expect(moved.war?.bonusOptions).toHaveLength(3);
-
-    const done = apply(moved, { type: "CHOOSE_WAR_BONUS", territoryId: "kuru" });
-    expect(done.territories.kuru.owner).toBe("A");
-    expect(done.war).toBe(null);
+    expect(moved.war).toBe(null);
+    expect(moved.currentTeam).toBe("B");
   });
 
   it("eliminates a defender whose only territory is captured", () => {

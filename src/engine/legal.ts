@@ -41,11 +41,6 @@ export function legalActions(state: GameState): Action[] {
           actions.push({ type: "CHOOSE_RELOCATION", territoryId: id });
         }
       }
-      if (state.war?.bonusOptions) {
-        for (const id of state.war.bonusOptions) {
-          actions.push({ type: "CHOOSE_WAR_BONUS", territoryId: id });
-        }
-      }
       if (state.war && state.war.answers.length < 5) {
         for (const aCorrect of [true, false]) {
           for (const bCorrect of [true, false]) {

@@ -88,8 +88,6 @@ export interface WarState {
   /** whether the target was fortified at declaration */
   targetFort: boolean;
   answers: WarAnswer[];
-  /** neutral territories the attacker may pick from as the +1 bonus */
-  bonusOptions: string[] | null;
 }
 
 export interface PendingRelocate {
@@ -130,7 +128,6 @@ export type Action =
   | { type: "FORTIFY" }
   | { type: "DECLARE_WAR"; target: string }
   | { type: "WAR_ANSWER"; aCorrect: boolean; bCorrect: boolean }
-  | { type: "CHOOSE_WAR_BONUS"; territoryId: string }
   | { type: "CHOOSE_RELOCATION"; territoryId: string }
   | { type: "SUDDEN_DEATH_ANSWER"; aCorrect: boolean; bCorrect: boolean };
 

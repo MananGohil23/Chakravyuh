@@ -133,11 +133,12 @@ describe("war", () => {
     expect(() => apply(used, { type: "DECLARE_WAR", target: "magadha" })).toThrow();
   });
 
-  it("captures the contested territory plus one neutral neighbour", () => {
+  it("captures only the contested territory", () => {
     const s = scenario({
       owners: { indraprastha: "A", magadha: "B" },
       markers: { A: "indraprastha" },
     });
+    const before = countTerritories(s).A;
     let w = apply(s, { type: "DECLARE_WAR", target: "magadha" });
     const answers = [
       [true, false],
@@ -147,20 +148,19 @@ describe("war", () => {
       [false, true],
     ] as const;
     for (const [a, b] of answers) w = apply(w, { type: "WAR_ANSWER", aCorrect: a, bCorrect: b });
-    // attacker A wins 3-2; magadha has neutral neighbours -> bonus choice
     expect(w.territories.magadha.owner).toBe("A");
-    const bonus = w.war?.bonusOptions ?? [];
-    expect(bonus.length).toBeGreaterThan(0);
-    const chosen = apply(w, { type: "CHOOSE_WAR_BONUS", territoryId: bonus[0] });
-    expect(chosen.territories[bonus[0]].owner).toBe("A");
+    expect(w.war).toBe(null);
+    // exactly one territory gained, no bonus neutral
+    expect(countTerritories(w).A).toBe(before + 1);
   });
 
-  it("nullifies the +1 bonus when the target is fortified", () => {
+  it("captures only the contested territory even when it was fortified", () => {
     const s = scenario({
       owners: { indraprastha: "A", magadha: "B" },
       markers: { A: "indraprastha" },
       forts: ["magadha"],
     });
+    const before = countTerritories(s).A;
     let w = apply(s, { type: "DECLARE_WAR", target: "magadha" });
     const answers = [
       [true, false],
@@ -172,10 +172,7 @@ describe("war", () => {
     for (const [a, b] of answers) w = apply(w, { type: "WAR_ANSWER", aCorrect: a, bCorrect: b });
     expect(w.territories.magadha.owner).toBe("A");
     expect(w.territories.magadha.fort).toBe(false);
-    expect(w.war).toBe(null);
-    // no neutral territory was gained
-    const counts = countTerritories(w);
-    expect(counts.A).toBe(2);
+    expect(countTerritories(w).A).toBe(before + 1);
   });
 });
 

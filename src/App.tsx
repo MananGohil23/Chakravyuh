@@ -157,7 +157,7 @@ export default function App() {
             <span className="gilded text-2xl">⚔</span>
           </div>
           <p className="etched mt-1 text-[11px] uppercase tracking-[0.45em] text-bronze">
-            Round III · Territory War · Admin Command
+            Round III
           </p>
           <div className="rule mx-auto mt-3 max-w-3xl" />
         </header>

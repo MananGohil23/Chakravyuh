@@ -58,8 +58,8 @@ works without the dev server.
    - **Travel** — to a distant owned territory; the marker relocates at the start of
      your next turn.
    - **Fortify** — raise a fort on the current territory.
-   - **War** — adjacent enemy; 5 questions to both teams. Winner takes the contested
-     territory (+1 neutral neighbour unless the target was fortified).
+   - **War** — adjacent enemy; 5 questions to both teams. The higher score takes the
+     contested territory (the losing team's territory only — no extra neutral land).
 5. The round ends at the question cap, when no progress is possible, or when no
    neutrals remain and no War is available. A tie goes to sudden death.
 

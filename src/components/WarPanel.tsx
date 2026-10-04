@@ -34,28 +34,6 @@ export function WarPanel() {
 
   if (!war) return null;
 
-  if (war.bonusOptions) {
-    return (
-      <div className="panel p-4">
-        <p className="gilded font-display text-sm uppercase tracking-[0.25em]">
-          ⚔ War Won — Claim Spoils
-        </p>
-        <p className="etched mt-1 text-sm">Seize one neutral land bordering the field:</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {war.bonusOptions.map((id) => (
-            <button
-              key={id}
-              onClick={() => act({ type: "CHOOSE_WAR_BONUS", territoryId: id })}
-              className="btn btn-gold px-3 py-1 text-base"
-            >
-              {TERRITORY_BY_ID[id].name}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   const aScore = war.answers.filter((x) => x.aCorrect).length;
   const bScore = war.answers.filter((x) => x.bCorrect).length;
   const qNumber = war.answers.length + 1;

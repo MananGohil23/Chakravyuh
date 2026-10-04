@@ -31,8 +31,6 @@ function describe(a: Action, state: GameState): string {
       return `Declare war on ${name(a.target)}`;
     case "WAR_ANSWER":
       return `War Q: A ${a.aCorrect ? "✔" : "✘"} / B ${a.bCorrect ? "✔" : "✘"}`;
-    case "CHOOSE_WAR_BONUS":
-      return `Spoils: ${name(a.territoryId)}`;
     case "CHOOSE_RELOCATION":
       return `Banner rallied → ${name(a.territoryId)}`;
     case "SUDDEN_DEATH_ANSWER":
