@@ -165,15 +165,15 @@ export function SpinWheel({ items, onResult, disabled = false }: Props) {
       </svg>
 
       {winnerName && !spinning && (
-        <p className="font-display mt-2 text-lg text-amber-300">Landed: {winnerName}</p>
+        <p className="gilded font-display mt-2 text-lg">⚔ Landed: {winnerName}</p>
       )}
 
       <button
         onClick={spin}
         disabled={spinning || disabled || items.length === 0}
-        className="font-display mt-3 w-full rounded-lg bg-amber-500 px-4 py-3 text-lg text-stone-900 hover:bg-amber-400 disabled:opacity-60"
+        className="btn btn-gold mt-3 w-full px-4 py-3 text-lg"
       >
-        {spinning ? "Spinning…" : "🎡 Spin the wheel"}
+        {spinning ? "Consulting the fates…" : "🎡 Spin the Wheel of Fate"}
       </button>
     </div>
   );

@@ -10,19 +10,19 @@ export function WarPanel() {
 
   if (pendingRelocate) {
     return (
-      <div className="rounded-lg border border-rose-500/50 bg-rose-500/10 p-4">
-        <p className="text-xs uppercase tracking-widest text-rose-300">
-          Marker displaced
+      <div className="panel p-4">
+        <p className="gilded font-display text-sm uppercase tracking-[0.25em]">
+          Marker Displaced
         </p>
-        <p className="mt-1 text-sm text-stone-200">
-          {state.teamNames[pendingRelocate.team]}'s marker was captured. Relocate to:
+        <p className="etched mt-1 text-sm">
+          {state.teamNames[pendingRelocate.team]}'s banner was captured. Rally to:
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {pendingRelocate.options.map((id) => (
             <button
               key={id}
               onClick={() => act({ type: "CHOOSE_RELOCATION", territoryId: id })}
-              className="font-display rounded bg-stone-700 px-3 py-1 text-base hover:bg-stone-600"
+              className="btn btn-iron px-3 py-1 text-base"
             >
               {TERRITORY_BY_ID[id].name}
             </button>
@@ -36,16 +36,17 @@ export function WarPanel() {
 
   if (war.bonusOptions) {
     return (
-      <div className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 p-4">
-        <p className="text-xs uppercase tracking-widest text-emerald-300">
-          War won — choose the +1 neutral territory
+      <div className="panel p-4">
+        <p className="gilded font-display text-sm uppercase tracking-[0.25em]">
+          ⚔ War Won — Claim Spoils
         </p>
+        <p className="etched mt-1 text-sm">Seize one neutral land bordering the field:</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {war.bonusOptions.map((id) => (
             <button
               key={id}
               onClick={() => act({ type: "CHOOSE_WAR_BONUS", territoryId: id })}
-              className="font-display rounded bg-stone-700 px-3 py-1 text-base hover:bg-stone-600"
+              className="btn btn-gold px-3 py-1 text-base"
             >
               {TERRITORY_BY_ID[id].name}
             </button>
@@ -61,43 +62,45 @@ export function WarPanel() {
   const target = TERRITORY_BY_ID[war.target]?.name ?? war.target;
 
   return (
-    <div className="rounded-lg border border-rose-500/50 bg-rose-500/10 p-4">
-      <p className="text-xs uppercase tracking-widest text-rose-300">
-        War · {state.teamNames[war.attacker]} attacking {target}
-        {war.targetFort ? " (fortified)" : ""}
+    <div className="panel p-4">
+      <p className="gilded font-display text-sm uppercase tracking-[0.25em]">
+        ⚔ War · {state.teamNames[war.attacker]} → {target}
+        {war.targetFort ? " 🛡" : ""}
       </p>
 
-      <div className="mt-2 flex justify-between text-sm">
-        <span className="text-blue-200">
+      <div className="panel-inset mt-2 flex justify-between px-3 py-1 text-sm">
+        <span className="text-blue-300">
           {state.teamNames.A}: <b>{aScore}</b>
         </span>
-        <span className="text-rose-200">
+        <span className="text-rose-300">
           {state.teamNames.B}: <b>{bScore}</b>
         </span>
       </div>
 
       {war.answers.length < 5 ? (
         <>
-          <p className="mt-3 text-sm font-semibold">Question {qNumber} of 5</p>
+          <p className="etched mt-3 text-sm">
+            Question {qNumber} of 5 — mark each host's answer
+          </p>
           <div className="mt-2 grid grid-cols-2 gap-3">
             {(["A", "B"] as const).map((team) => {
               const val = team === "A" ? aCorrect : bCorrect;
               const set = team === "A" ? setACorrect : setBCorrect;
               return (
-                <div key={team} className="rounded border border-stone-600 p-2">
-                  <p className="mb-1 text-xs text-stone-300">{state.teamNames[team]}</p>
+                <div key={team} className="panel-inset p-2">
+                  <p className="etched mb-1 text-xs">{state.teamNames[team]}</p>
                   <div className="grid grid-cols-2 gap-1">
                     <button
                       onClick={() => set(true)}
-                      className={`font-display rounded px-2 py-1 text-sm ${val ? "bg-emerald-500 text-stone-900" : "bg-stone-700"}`}
+                      className={`btn px-2 py-1 text-sm ${val ? "btn-emerald" : "btn-iron"}`}
                     >
-                      Correct
+                      ✔
                     </button>
                     <button
                       onClick={() => set(false)}
-                      className={`font-display rounded px-2 py-1 text-sm ${!val ? "bg-rose-600 text-white" : "bg-stone-700"}`}
+                      className={`btn px-2 py-1 text-sm ${!val ? "btn-blood" : "btn-iron"}`}
                     >
-                      Wrong
+                      ✘
                     </button>
                   </div>
                 </div>
@@ -110,13 +113,13 @@ export function WarPanel() {
               setACorrect(false);
               setBCorrect(false);
             }}
-            className="font-display mt-3 w-full rounded-lg bg-amber-500 px-4 py-2 text-base text-stone-900 hover:bg-amber-400"
+            className="btn btn-gold mt-3 w-full px-4 py-2 text-base"
           >
-            Record answer {qNumber}
+            Record Answer {qNumber}
           </button>
         </>
       ) : (
-        <p className="mt-3 text-sm text-stone-300">Resolving war…</p>
+        <p className="etched mt-3 text-sm">Resolving the battle…</p>
       )}
     </div>
   );

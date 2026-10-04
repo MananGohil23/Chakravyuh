@@ -1,12 +1,10 @@
-import { useRef, useState } from "react";
 import { TERRITORIES } from "../engine/data.ts";
 import { REGIONS } from "../engine/regions.ts";
 import { REGION_GEOM } from "../engine/geometry.ts";
 import type { Owner } from "../engine/types.ts";
 import { useGame } from "../state/game.tsx";
-import { useCalibration, type Geom } from "../state/calibration.tsx";
 
-const OWNER_FILL: Record<"A" | "B", string> = { A: "#2563eb", B: "#e11d48" };
+const OWNER_FILL: Record<"A" | "B", string> = { A: "#1e3a8a", B: "#7f1d1d" };
 const OWNER_STROKE: Record<"A" | "B", string> = { A: "#60a5fa", B: "#fb7185" };
 
 function fillFor(owner: Owner): string {
@@ -19,79 +17,29 @@ interface MapViewProps {
   onSelect?: (id: string) => void;
 }
 
-interface DragState {
-  mode: "move" | "scale";
-  id: string;
-  startX: number;
-  startY: number;
-  orig: Geom;
-}
-
 export function MapView({ highlight = [], selected = null, onSelect }: MapViewProps) {
   const { state } = useGame();
-  const { calibrating, geomFor, setGeom } = useCalibration();
-  const svgRef = useRef<SVGSVGElement>(null);
-  const dragRef = useRef<DragState | null>(null);
-  const movedRef = useRef(false);
-  const [, forceRender] = useState(0);
-
   const highlightSet = new Set(highlight);
   const markerAt: Record<string, "A" | "B"> = {};
   if (state.markers.A) markerAt[state.markers.A] = "A";
   if (state.markers.B) markerAt[state.markers.B] = "B";
 
-  function scaleFactor(): number {
-    const rect = svgRef.current?.getBoundingClientRect();
-    return rect && rect.width > 0 ? 1536 / rect.width : 1;
-  }
-
-  function startDrag(mode: "move" | "scale", id: string, e: React.PointerEvent) {
-    e.stopPropagation();
-    movedRef.current = false;
-    dragRef.current = { mode, id, startX: e.clientX, startY: e.clientY, orig: geomFor(id) };
-  }
-
-  function onPointerMove(e: React.PointerEvent) {
-    const drag = dragRef.current;
-    if (!drag) return;
-    const k = scaleFactor();
-    const dx = (e.clientX - drag.startX) * k;
-    const dy = (e.clientY - drag.startY) * k;
-    if (Math.abs(dx) + Math.abs(dy) > 1.5) movedRef.current = true;
-    if (drag.mode === "move") {
-      setGeom(drag.id, { dx: drag.orig.dx + dx, dy: drag.orig.dy + dy });
-    } else {
-      setGeom(drag.id, { s: drag.orig.s + dx / 200 });
-    }
-  }
-
-  function endDrag() {
-    const drag = dragRef.current;
-    if (drag && !movedRef.current) onSelect?.(drag.id);
-    dragRef.current = null;
-    forceRender((n) => n + 1);
-  }
-
   return (
-    <div className="relative w-full select-none" style={{ aspectRatio: "1536 / 1024" }}>
+    <div className="relative min-h-[45vh] w-full flex-1 select-none lg:min-h-0">
       <img
         src="/map.jpeg"
         alt="The Battlefield map"
-        className="absolute inset-0 h-full w-full rounded-lg object-contain"
+        className="absolute inset-0 h-full w-full object-contain"
         draggable={false}
       />
       <svg
-        ref={svgRef}
         viewBox="0 0 1536 1024"
+        preserveAspectRatio="xMidYMid meet"
         className="absolute inset-0 h-full w-full"
         role="img"
         aria-label="Game map"
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerLeave={endDrag}
       >
         {TERRITORIES.map((t) => {
-          const g = geomFor(t.id);
           const { centroid, bbox } = REGION_GEOM[t.id];
           const [cx, cy] = centroid;
           const w = bbox.maxX - bbox.minX;
@@ -102,69 +50,33 @@ export function MapView({ highlight = [], selected = null, onSelect }: MapViewPr
           const isHighlight = highlightSet.has(t.id);
           const isSelected = selected === t.id;
           const marker = markerAt[t.id];
-          const transform = `translate(${g.dx} ${g.dy}) translate(${cx} ${cy}) scale(${g.s}) translate(${-cx} ${-cy})`;
-          const label = owner
-            ? `${t.name} — ${state.teamNames[owner]}`
-            : `${t.name} — Neutral`;
+          const label = owner ? `${t.name} — ${state.teamNames[owner]}` : `${t.name} — Neutral`;
           return (
             <g
               key={t.id}
-              transform={transform}
-              onClick={() => {
-                if (!calibrating) onSelect?.(t.id);
-              }}
-              onPointerDown={calibrating ? (e) => startDrag("move", t.id, e) : undefined}
-              style={{ cursor: onSelect || calibrating ? "pointer" : "default" }}
+              onClick={() => onSelect?.(t.id)}
+              style={{ cursor: onSelect ? "pointer" : "default" }}
             >
               <title>{`${label}${fort ? " (fortified)" : ""}`}</title>
               <path
                 d={REGIONS[t.id]}
                 style={{
                   fill: fillFor(owner),
-                  fillOpacity: owner ? 0.92 : 0.06,
-                  stroke: calibrating
-                    ? "#22d3ee"
-                    : isSelected
-                      ? "#facc15"
-                      : isHighlight
-                        ? "#fde047"
-                        : owner
-                          ? OWNER_STROKE[owner]
-                          : "rgba(120,113,108,0.55)",
-                  strokeWidth: calibrating ? 3 : isSelected ? 8 : isHighlight ? 7 : owner ? 4 : 1.5,
+                  fillOpacity: owner ? 0.96 : 0.06,
+                  stroke: isSelected
+                    ? "#facc15"
+                    : isHighlight
+                      ? "#fde047"
+                      : owner
+                        ? OWNER_STROKE[owner]
+                        : "rgba(120,113,108,0.55)",
+                  strokeWidth: isSelected ? 8 : isHighlight ? 7 : owner ? 4 : 1.5,
                   transition:
                     "fill 700ms ease, fill-opacity 700ms ease, stroke 700ms ease, stroke-width 400ms ease",
                 }}
                 strokeLinejoin="round"
-                className={isHighlight && !calibrating ? "bf-pulse" : undefined}
-                strokeDasharray={calibrating ? "12 8" : undefined}
+                className={isHighlight ? "bf-pulse" : undefined}
               />
-              {calibrating && (
-                <>
-                  <text
-                    x={cx}
-                    y={cy}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize={26}
-                    fill="#22d3ee"
-                    fontWeight={700}
-                  >
-                    {t.number}
-                  </text>
-                  <rect
-                    x={bbox.maxX}
-                    y={cy - 8}
-                    width={16}
-                    height={16}
-                    fill="#22d3ee"
-                    stroke="#0e7490"
-                    strokeWidth={2}
-                    style={{ cursor: "ew-resize" }}
-                    onPointerDown={(e) => startDrag("scale", t.id, e)}
-                  />
-                </>
-              )}
               <text
                 x={cx}
                 y={cy - h * 0.05}

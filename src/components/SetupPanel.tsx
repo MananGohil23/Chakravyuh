@@ -18,13 +18,13 @@ export function SetupPanel() {
   const nextTeam = teamForDrawIndex(drawIndex);
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2">
+    <div className="overflow-y-auto flex-1 space-y-4">
+      <div className="panel grid grid-cols-2 gap-2 p-3">
         {(["A", "B"] as const).map((team) => (
-          <label key={team} className="text-xs text-stone-400">
-            Team {team} name
+          <label key={team} className="etched text-[11px] uppercase tracking-wider">
+            House {team} name
             <input
-              className="mt-1 w-full rounded border border-stone-600 bg-stone-900 px-2 py-1 text-sm text-stone-100"
+              className="panel-inset mt-1 w-full px-2 py-1 text-sm text-ink outline-none"
               value={state.teamNames[team]}
               onChange={(e) => setTeamNames({ ...state.teamNames, [team]: e.target.value })}
             />
@@ -34,12 +34,12 @@ export function SetupPanel() {
 
       {state.phase === "SETUP_DRAW" && (
         <>
-          <div className="rounded-lg border border-stone-700 bg-stone-800/40 p-4 text-center">
-            <p className="text-xs uppercase tracking-widest text-stone-400">
+          <div className="panel p-4 text-center">
+            <p className="etched text-[11px] uppercase tracking-[0.25em]">
               Wheel draw {drawIndex + 1} of {state.config.drawCount}
             </p>
-            <p className="mt-1 text-sm">
-              Next:{" "}
+            <p className="gilded font-display mt-1 text-lg">
+              Fate favours{" "}
               <span className={nextTeam === "A" ? "text-blue-300" : "text-rose-300"}>
                 {state.teamNames[nextTeam]}
               </span>
@@ -53,19 +53,23 @@ export function SetupPanel() {
             <button
               onClick={undo}
               disabled={state.drawn.length === 0}
-              className="mt-2 text-xs text-stone-400 underline hover:text-stone-200 disabled:opacity-40"
+              className="btn btn-iron mt-3 px-3 py-1 text-xs"
             >
-              Re-spin last result (undo)
+              ↩ Re-spin last draw
             </button>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             {(["A", "B"] as const).map((team) => (
-              <div key={team} className="rounded border border-stone-700 p-2">
-                <p className={`text-xs font-semibold ${team === "A" ? "text-blue-300" : "text-rose-300"}`}>
+              <div key={team} className="panel-inset p-2">
+                <p
+                  className={`font-display text-sm ${
+                    team === "A" ? "text-blue-300" : "text-rose-300"
+                  }`}
+                >
                   {state.teamNames[team]}
                 </p>
-                <ul className="mt-1 space-y-1 text-sm">
+                <ul className="etched mt-1 space-y-1 text-sm">
                   {state.drawn
                     .map((id, i) => ({ id, team: teamForDrawIndex(i) }))
                     .filter((d) => d.team === team)
@@ -91,19 +95,21 @@ function MarkerSetup() {
   return (
     <div className="space-y-3">
       {(["A", "B"] as const).map((team) => (
-        <div key={team} className="rounded border border-stone-700 p-2">
-          <p className={`text-xs font-semibold ${team === "A" ? "text-blue-300" : "text-rose-300"}`}>
-            {state.teamNames[team]} — choose marker territory
+        <div key={team} className="panel p-3">
+          <p
+            className={`font-display text-sm ${
+              team === "A" ? "text-blue-300" : "text-rose-300"
+            }`}
+          >
+            {state.teamNames[team]} — plant your banner
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {ownedBy(state, team).map((id) => (
               <button
                 key={id}
                 onClick={() => act({ type: "PLACE_MARKER", team, territoryId: id })}
-                className={`font-display rounded px-2 py-1 text-base ${
-                  state.markers[team] === id
-                    ? "bg-yellow-400 text-stone-900"
-                    : "bg-stone-700 text-stone-100 hover:bg-stone-600"
+                className={`btn px-2 py-1 text-base ${
+                  state.markers[team] === id ? "btn-gold" : "btn-iron"
                 }`}
               >
                 {NAME_BY_ID[id]}
@@ -113,16 +119,14 @@ function MarkerSetup() {
         </div>
       ))}
 
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-stone-400">First turn:</span>
+      <div className="panel flex items-center gap-2 p-3">
+        <span className="etched text-[11px] uppercase tracking-wider">First move:</span>
         {(["A", "B"] as const).map((team) => (
           <button
             key={team}
             onClick={() => act({ type: "SET_FIRST_TEAM", team })}
-            className={`font-display rounded px-2 py-1 text-base ${
-              state.config.firstTeam === team
-                ? "bg-amber-500 text-stone-900"
-                : "bg-stone-700 hover:bg-stone-600"
+            className={`btn px-2 py-1 text-base ${
+              state.config.firstTeam === team ? "btn-gold" : "btn-iron"
             }`}
           >
             {state.teamNames[team]}
@@ -130,23 +134,23 @@ function MarkerSetup() {
         ))}
       </div>
 
-      <label className="block text-xs text-stone-400">
-        Question cap
+      <label className="panel block p-3 text-[11px] uppercase tracking-wider">
+        <span className="etched">Question cap</span>
         <input
           type="number"
           min={1}
           value={state.config.questionCap}
           onChange={(e) => setConfig({ questionCap: Number(e.target.value) })}
-          className="mt-1 w-full rounded border border-stone-600 bg-stone-900 px-2 py-1 text-sm"
+          className="panel-inset mt-1 w-full px-2 py-1 text-sm text-ink outline-none"
         />
       </label>
 
       <button
         onClick={() => act({ type: "START_GAME" })}
         disabled={!bothPlaced}
-        className="font-display w-full rounded-lg bg-emerald-500 px-4 py-3 text-lg text-stone-900 hover:bg-emerald-400 disabled:opacity-50"
+        className="btn btn-emerald w-full px-4 py-3 text-lg"
       >
-        Start the battle
+        ⚔ Sound the War Horn
       </button>
     </div>
   );

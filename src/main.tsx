@@ -7,14 +7,11 @@ import "@fontsource/mukta/latin-700.css";
 import "./index.css";
 import App from "./App.tsx";
 import { GameProvider } from "./state/game.tsx";
-import { CalibrationProvider } from "./state/calibration.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <GameProvider>
-      <CalibrationProvider>
-        <App />
-      </CalibrationProvider>
+      <App />
     </GameProvider>
   </StrictMode>,
 );

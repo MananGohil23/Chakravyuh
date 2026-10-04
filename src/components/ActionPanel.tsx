@@ -10,11 +10,17 @@ interface Props {
   setMode: (m: Mode) => void;
 }
 
-const MODES: { key: Exclude<Mode, null>; label: string; hint: string }[] = [
-  { key: "move", label: "Move", hint: "Adjacent territory you own" },
-  { key: "conquer", label: "Conquer", hint: "Adjacent neutral (question)" },
-  { key: "travel", label: "Travel", hint: "Own territory elsewhere (question)" },
-  { key: "war", label: "War", hint: "Adjacent enemy (5 questions)" },
+const MODES: {
+  key: Exclude<Mode, null>;
+  label: string;
+  hint: string;
+  icon: string;
+  accent: string;
+}[] = [
+  { key: "move", label: "Move", hint: "March to an adjacent holding", icon: "🏳️", accent: "btn-iron" },
+  { key: "conquer", label: "Conquer", hint: "Storm an adjacent neutral land", icon: "⚔️", accent: "btn-gold" },
+  { key: "travel", label: "Travel", hint: "Ride to a distant holding", icon: "🐎", accent: "btn-iron" },
+  { key: "war", label: "War", hint: "Declare war on an adjacent foe", icon: "🔥", accent: "btn-blood" },
 ];
 
 function targetsFor(opts: TurnOptions, mode: Mode): string[] {
@@ -53,51 +59,47 @@ export function ActionPanel({ opts, mode, setMode }: Props) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="panel space-y-3 p-3">
+      <p className="gilded font-display text-center text-xs uppercase tracking-[0.3em]">
+        Orders of {state.teamNames[team]}
+      </p>
+
       <div className="grid grid-cols-2 gap-2">
         {MODES.map((m) => {
           const disabled = counts[m.key] === 0;
+          const selected = mode === m.key;
           return (
             <button
               key={m.key}
               disabled={disabled}
-              onClick={() => setMode(mode === m.key ? null : m.key)}
-              className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
-                mode === m.key
-                  ? "border-yellow-400 bg-yellow-400/20"
-                  : "border-stone-600 bg-stone-800 hover:bg-stone-700"
-              } disabled:cursor-not-allowed disabled:opacity-40`}
+              onClick={() => setMode(selected ? null : m.key)}
+              className={`btn ${m.accent} px-3 py-2 text-left`}
+              style={selected ? { boxShadow: "0 0 0 2px #f0c94a" } : undefined}
             >
-              <span className="font-display text-base">{m.label}</span>
-              <span className="ml-1 text-xs text-stone-400">({counts[m.key]})</span>
-              <span className="block text-[11px] text-stone-400">{m.hint}</span>
+              <span className="text-base">
+                {m.icon} {m.label}
+              </span>
+              <span className="ml-1 text-xs opacity-70">({counts[m.key]})</span>
+              <span className="block text-[11px] opacity-70">{m.hint}</span>
             </button>
           );
         })}
-        <button
-          disabled={!opts.canFortify}
-          onClick={() => act({ type: "FORTIFY" })}
-          className="rounded-lg border border-stone-600 bg-stone-800 px-3 py-2 text-left text-sm hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <span className="font-display text-base">Fortify</span>
-          <span className="block text-[11px] text-stone-400">Fort your current territory</span>
-        </button>
       </div>
 
       {mode && (
-        <div className="rounded-lg border border-stone-700 bg-stone-800/40 p-3">
-          <p className="mb-2 text-xs uppercase tracking-wide text-stone-400">
-            Choose a target for {mode}
+        <div className="panel-inset p-3">
+          <p className="etched mb-2 text-[11px] uppercase tracking-widest">
+            Select target — {mode}
           </p>
           {active.length === 0 ? (
-            <p className="text-sm text-stone-400">No valid targets.</p>
+            <p className="etched text-sm">No valid targets.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {active.map((id) => (
                 <button
                   key={id}
                   onClick={() => dispatchTarget(id)}
-                  className="font-display rounded bg-stone-700 px-3 py-1 text-base hover:bg-stone-600"
+                  className="btn btn-iron px-3 py-1 text-base"
                 >
                   {TERRITORY_BY_ID[id].name}
                 </button>
@@ -107,11 +109,8 @@ export function ActionPanel({ opts, mode, setMode }: Props) {
         </div>
       )}
 
-      <p className="text-center text-xs text-stone-500">
-        Or click a highlighted territory on the map.
-      </p>
-      <p className="text-center text-[11px] text-stone-500">
-        Acting: {state.teamNames[team]}
+      <p className="etched text-center text-[11px] opacity-70">
+        …or strike a highlighted land on the map.
       </p>
     </div>
   );

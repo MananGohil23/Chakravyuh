@@ -12,31 +12,31 @@ function describe(a: Action, state: GameState): string {
     case "DRAW_TERRITORY":
       return `Wheel draw: ${name(a.territoryId)}`;
     case "PLACE_MARKER":
-      return `${t[a.team]} marker → ${name(a.territoryId)}`;
+      return `${t[a.team]} banner → ${name(a.territoryId)}`;
     case "SET_FIRST_TEAM":
-      return `First turn: ${t[a.team]}`;
+      return `First move: ${t[a.team]}`;
     case "START_GAME":
-      return "Game started";
+      return "War horn sounded — battle begins";
     case "MOVE":
-      return `Move → ${name(a.to)}`;
+      return `March → ${name(a.to)}`;
     case "DECLARE_CONQUER":
       return `Conquer ${name(a.to)} (question)`;
     case "DECLARE_TRAVEL":
       return `Travel → ${name(a.to)} (question)`;
     case "RESOLVE_QUESTION":
-      return a.correct ? "Answer: correct" : "Answer: wrong";
+      return a.correct ? "Verdict: correct" : "Verdict: wrong";
     case "FORTIFY":
-      return "Fortify current territory";
+      return "Fort raised";
     case "DECLARE_WAR":
-      return `Declare War on ${name(a.target)}`;
+      return `Declare war on ${name(a.target)}`;
     case "WAR_ANSWER":
-      return `War Q: A ${a.aCorrect ? "✓" : "✗"} / B ${a.bCorrect ? "✓" : "✗"}`;
+      return `War Q: A ${a.aCorrect ? "✔" : "✘"} / B ${a.bCorrect ? "✔" : "✘"}`;
     case "CHOOSE_WAR_BONUS":
-      return `+1 bonus: ${name(a.territoryId)}`;
+      return `Spoils: ${name(a.territoryId)}`;
     case "CHOOSE_RELOCATION":
-      return `Relocate marker → ${name(a.territoryId)}`;
+      return `Banner rallied → ${name(a.territoryId)}`;
     case "SUDDEN_DEATH_ANSWER":
-      return `Sudden death: A ${a.aCorrect ? "✓" : "✗"} / B ${a.bCorrect ? "✓" : "✗"}`;
+      return `Sudden death: A ${a.aCorrect ? "✔" : "✘"} / B ${a.bCorrect ? "✔" : "✘"}`;
     default:
       return "Action";
   }
@@ -47,32 +47,36 @@ export function EventLog() {
   const entries = state.log.map((a, i) => ({ a, i }));
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="panel flex min-h-0 flex-1 flex-col p-3">
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="font-display text-sm uppercase tracking-widest text-stone-400">Event log</h2>
+        <h2 className="gilded font-display text-sm uppercase tracking-[0.2em]">
+          📜 Chronicle
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={undo}
             disabled={state.log.length === 0}
-            className="font-display rounded bg-stone-700 px-2 py-1 text-sm hover:bg-stone-600 disabled:opacity-40"
+            className="btn btn-iron px-2 py-1 text-sm"
           >
             ↩ Undo
           </button>
           <button
             onClick={() => {
-              if (window.confirm("Reset the entire game? This cannot be undone.")) reset();
+              if (window.confirm("Reset the entire battle? This cannot be undone.")) reset();
             }}
-            className="font-display rounded bg-rose-800 px-2 py-1 text-sm hover:bg-rose-700"
+            className="btn btn-blood px-2 py-1 text-sm"
           >
             Reset
           </button>
         </div>
       </div>
-      <ol className="min-h-0 flex-1 space-y-1 overflow-y-auto rounded border border-stone-800 bg-stone-900/60 p-2 text-xs">
-        {entries.length === 0 && <li className="text-stone-500">No actions yet.</li>}
+      <ol className="panel-inset min-h-0 flex-1 space-y-1 overflow-y-auto p-2 text-xs">
+        {entries.length === 0 && (
+          <li className="etched opacity-60">The chronicle is empty.</li>
+        )}
         {entries.map(({ a, i }) => (
-          <li key={i} className="flex gap-2 text-stone-300">
-            <span className="w-6 shrink-0 text-right tabular-nums text-stone-500">
+          <li key={i} className="etched flex gap-2">
+            <span className="w-6 shrink-0 text-right tabular-nums text-bronze">
               {i + 1}
             </span>
             <span>{describe(a, state)}</span>

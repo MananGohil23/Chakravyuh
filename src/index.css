@@ -3,6 +3,14 @@
 @theme {
   --font-sans: "Mukta", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Rozha One", "Mukta", ui-serif, serif;
+
+  --color-ink: #e8dcc0;
+  --color-gold: #c9a227;
+  --color-gold-bright: #f0c94a;
+  --color-bronze: #8a6a2f;
+  --color-leather: #1b130c;
+  --color-leather-2: #2a1d12;
+  --color-blood: #7f1d1d;
 }
 
 :root {
@@ -11,8 +19,121 @@
 
 body {
   margin: 0;
-  background: #0c0a09;
+  color: var(--color-ink);
   font-family: var(--font-sans);
+  background:
+    radial-gradient(1200px 820px at 50% -12%, #2c2114 0%, #150f09 55%, #0a0705 100%)
+      fixed;
+}
+
+/* aged grain overlay */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- surfaces ---- */
+.panel {
+  position: relative;
+  border-radius: 6px;
+  border: 1px solid var(--color-bronze);
+  background:
+    linear-gradient(180deg, rgba(44, 31, 19, 0.96), rgba(20, 14, 9, 0.96));
+  box-shadow:
+    inset 0 0 0 1px rgba(201, 162, 39, 0.22),
+    inset 0 1px 0 rgba(255, 236, 180, 0.06),
+    0 10px 26px rgba(0, 0, 0, 0.55);
+}
+
+.panel-inset {
+  border-radius: 4px;
+  border: 1px solid rgba(138, 106, 47, 0.6);
+  background: rgba(10, 7, 4, 0.55);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- type ---- */
+.gilded {
+  color: var(--color-gold-bright);
+  text-shadow:
+    0 1px 0 #6b4e12,
+    0 0 14px rgba(240, 201, 74, 0.35);
+  letter-spacing: 0.06em;
+}
+
+.etched {
+  color: #d8c9a3;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.7);
+}
+
+/* ---- ornamental rule ---- */
+.rule {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201, 162, 39, 0.15) 10%,
+    rgba(201, 162, 39, 0.9) 50%,
+    rgba(201, 162, 39, 0.15) 90%,
+    transparent
+  );
+}
+
+/* ---- buttons ---- */
+.btn {
+  font-family: var(--font-display);
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  transition: filter 120ms ease, transform 60ms ease;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+.btn:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.4;
+  filter: grayscale(0.5);
+  cursor: not-allowed;
+}
+
+.btn-gold {
+  background: linear-gradient(180deg, #eccb6a, #b8862b);
+  color: #2a1a06;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 3px 0 #5c4112;
+}
+.btn-blood {
+  background: linear-gradient(180deg, #b32626, #5f0f0f);
+  color: #f7e4c8;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 3px 0 #3a0808;
+}
+.btn-iron {
+  background: linear-gradient(180deg, #4a3b2a, #241a12);
+  color: #e8dcc0;
+  border-color: #6b5334;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 0 #120c07;
+}
+.btn-emerald {
+  background: linear-gradient(180deg, #3f9c5a, #1f6b38);
+  color: #071a0d;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 3px 0 #123a20;
 }
 
 @keyframes bf-pulse {

@@ -9,28 +9,28 @@ export function QuestionPanel() {
   const teamName = state.teamNames[pq.team];
 
   return (
-    <div className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-4">
-      <p className="font-display text-sm uppercase tracking-widest text-amber-300">
-        {pq.kind === "conquer" ? "Conquer attempt" : "Travel attempt"}
+    <div className="panel p-4">
+      <p className="gilded font-display text-sm uppercase tracking-[0.25em]">
+        {pq.kind === "conquer" ? "⚔ Conquer Attempt" : "🐎 Travel Attempt"}
       </p>
-      <p className="mt-1 text-lg font-semibold">
-        {teamName} → {target}
+      <p className="etched mt-1 text-lg">
+        <b className="text-gold-bright">{teamName}</b> → {target}
       </p>
-      <p className="mt-1 text-xs text-stone-300">
-        Ask a Mahabharata question aloud, then record the result.
+      <p className="etched mt-1 text-xs opacity-80">
+        Pose a Mahabharata question aloud, then record the verdict.
       </p>
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button
           onClick={() => act({ type: "RESOLVE_QUESTION", correct: true })}
-          className="font-display rounded-lg bg-emerald-500 px-4 py-3 text-lg text-stone-900 hover:bg-emerald-400"
+          className="btn btn-emerald px-4 py-3 text-lg"
         >
-          Correct
+          ✔ Correct
         </button>
         <button
           onClick={() => act({ type: "RESOLVE_QUESTION", correct: false })}
-          className="font-display rounded-lg bg-rose-600 px-4 py-3 text-lg text-white hover:bg-rose-500"
+          className="btn btn-blood px-4 py-3 text-lg"
         >
-          Wrong
+          ✘ Wrong
         </button>
       </div>
     </div>
